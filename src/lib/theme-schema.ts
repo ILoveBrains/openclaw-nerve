@@ -120,44 +120,44 @@ export interface TweakcnTheme {
 /** 
  * Mapping from tweakcn color token names to Nerve CSS variable names.
  * tweakcn uses kebab-case names like "background", "foreground", "primary", etc.
- * Nerve uses --background, --foreground, --primary, etc.
+ * Nerve uses --color-background, --color-foreground, --color-primary, etc.
  */
 export const TWEAKCN_TO_NERVE_MAP: Record<string, string> = {
   // Core semantic colors (direct mapping)
-  'background': '--background',
-  'foreground': '--foreground',
-  'card': '--card',
-  'card-foreground': '--card-foreground',
-  'popover': '--popover',
-  'popover-foreground': '--popover-foreground',
-  'primary': '--primary',
-  'primary-foreground': '--primary-foreground',
-  'secondary': '--secondary',
-  'secondary-foreground': '--secondary-foreground',
-  'muted': '--muted',
-  'muted-foreground': '--muted-foreground',
-  'accent': '--accent',
-  'accent-foreground': '--accent-foreground',
-  'destructive': '--destructive',
-  'destructive-foreground': '--destructive-foreground',
-  'border': '--border',
-  'input': '--input',
-  'ring': '--ring',
+  'background': '--color-background',
+  'foreground': '--color-foreground',
+  'card': '--color-card',
+  'card-foreground': '--color-card-foreground',
+  'popover': '--color-popover',
+  'popover-foreground': '--color-popover-foreground',
+  'primary': '--color-primary',
+  'primary-foreground': '--color-primary-foreground',
+  'secondary': '--color-secondary',
+  'secondary-foreground': '--color-secondary-foreground',
+  'muted': '--color-muted',
+  'muted-foreground': '--color-muted-foreground',
+  'accent': '--color-accent',
+  'accent-foreground': '--color-accent-foreground',
+  'destructive': '--color-destructive',
+  'destructive-foreground': '--color-destructive-foreground',
+  'border': '--color-border',
+  'input': '--color-input',
+  'ring': '--color-ring',
   // Sidebar (tweakcn doesn't have these, but we can map from core)
-  'sidebar': '--sidebar',
-  'sidebar-foreground': '--sidebar-foreground',
-  'sidebar-primary': '--sidebar-primary',
-  'sidebar-primary-foreground': '--sidebar-primary-foreground',
-  'sidebar-accent': '--sidebar-accent',
-  'sidebar-accent-foreground': '--sidebar-accent-foreground',
-  'sidebar-border': '--sidebar-border',
-  'sidebar-ring': '--sidebar-ring',
+  'sidebar': '--color-sidebar',
+  'sidebar-foreground': '--color-sidebar-foreground',
+  'sidebar-primary': '--color-sidebar-primary',
+  'sidebar-primary-foreground': '--color-sidebar-primary-foreground',
+  'sidebar-accent': '--color-sidebar-accent',
+  'sidebar-accent-foreground': '--color-sidebar-accent-foreground',
+  'sidebar-border': '--color-sidebar-border',
+  'sidebar-ring': '--color-sidebar-ring',
   // Chart (tweakcn has chart-1 through chart-5)
-  'chart-1': '--chart-1',
-  'chart-2': '--chart-2',
-  'chart-3': '--chart-3',
-  'chart-4': '--chart-4',
-  'chart-5': '--chart-5',
+  'chart-1': '--color-chart-1',
+  'chart-2': '--color-chart-2',
+  'chart-3': '--color-chart-3',
+  'chart-4': '--color-chart-4',
+  'chart-5': '--color-chart-5',
 };
 
 /**
@@ -204,25 +204,25 @@ export function mapTweakcnColors(colors: Record<string, string>): Record<string,
   // Nerve-specific colors that don't have tweakcn equivalents
   // Map from closest semantic equivalents if not provided
   const nerveExtras: Record<string, string[]> = {
-    '--green': ['green', 'success'],
-    '--red': ['destructive', 'error'],
-    '--orange': ['warning', 'orange'],
-    '--purple': ['purple', 'accent'],
-    '--info': ['info', 'primary'],
-    '--message-user': ['message-user'],
-    '--message-assistant': ['message-assistant'],
-    '--message-system': ['message-system'],
-    '--scrollbar': ['border'],
-    '--scrollbar-hover': ['border'],
+    '--color-green': ['green', 'success'],
+    '--color-red': ['destructive', 'error'],
+    '--color-orange': ['warning', 'orange'],
+    '--color-purple': ['purple', 'accent'],
+    '--color-info': ['info', 'primary'],
+    '--color-message-user': ['message-user'],
+    '--color-message-assistant': ['message-assistant'],
+    '--color-message-system': ['message-system'],
+    '--color-scrollbar': ['border'],
+    '--color-scrollbar-hover': ['border'],
     // Sidebar colors — derive from tweakcn base colors
-    '--sidebar': ['sidebar', 'card'],
-    '--sidebar-foreground': ['sidebar-foreground', 'card-foreground'],
-    '--sidebar-primary': ['sidebar-primary', 'primary'],
-    '--sidebar-primary-foreground': ['sidebar-primary-foreground', 'primary-foreground'],
-    '--sidebar-accent': ['sidebar-accent', 'accent'],
-    '--sidebar-accent-foreground': ['sidebar-accent-foreground', 'accent-foreground'],
-    '--sidebar-border': ['sidebar-border', 'border'],
-    '--sidebar-ring': ['sidebar-ring', 'ring'],
+    '--color-sidebar': ['sidebar', 'card'],
+    '--color-sidebar-foreground': ['sidebar-foreground', 'card-foreground'],
+    '--color-sidebar-primary': ['sidebar-primary', 'primary'],
+    '--color-sidebar-primary-foreground': ['sidebar-primary-foreground', 'primary-foreground'],
+    '--color-sidebar-accent': ['sidebar-accent', 'accent'],
+    '--color-sidebar-accent-foreground': ['sidebar-accent-foreground', 'accent-foreground'],
+    '--color-sidebar-border': ['sidebar-border', 'border'],
+    '--color-sidebar-ring': ['sidebar-ring', 'ring'],
   };
   
   for (const [nerveVar, fallbacks] of Object.entries(nerveExtras)) {
@@ -230,11 +230,6 @@ export function mapTweakcnColors(colors: Record<string, string>): Record<string,
       for (const fallback of fallbacks) {
         if (colors[fallback]) {
           result[nerveVar] = colors[fallback];
-          // Also set the --color-* dual-namespace variant
-          const colorKey = `--color-${nerveVar.slice(2)}`;
-          if (!result[colorKey]) {
-            result[colorKey] = colors[fallback];
-          }
           break;
         }
       }
@@ -250,23 +245,23 @@ export function mapTweakcnColors(colors: Record<string, string>): Record<string,
 
 /** Required CSS variables that every theme must define. */
 export const REQUIRED_THEME_VARIABLES = [
-  '--background',
-  '--foreground',
-  '--card',
-  '--card-foreground',
-  '--primary',
-  '--primary-foreground',
-  '--secondary',
-  '--secondary-foreground',
-  '--muted',
-  '--muted-foreground',
-  '--accent',
-  '--accent-foreground',
-  '--destructive',
-  '--destructive-foreground',
-  '--border',
-  '--input',
-  '--ring',
+  '--color-background',
+  '--color-foreground',
+  '--color-card',
+  '--color-card-foreground',
+  '--color-primary',
+  '--color-primary-foreground',
+  '--color-secondary',
+  '--color-secondary-foreground',
+  '--color-muted',
+  '--color-muted-foreground',
+  '--color-accent',
+  '--color-accent-foreground',
+  '--color-destructive',
+  '--color-destructive-foreground',
+  '--color-border',
+  '--color-input',
+  '--color-ring',
 ] as const;
 
 /**
@@ -274,7 +269,7 @@ export const REQUIRED_THEME_VARIABLES = [
  * Returns an array of missing variable names (empty = valid).
  */
 export function validateTheme(colors: Record<string, string>): string[] {
-  return REQUIRED_THEME_VARIABLES.filter(v => !(v in colors) && !(`--color${v}` in colors));
+  return REQUIRED_THEME_VARIABLES.filter(v => !(v in colors));
 }
 
 /**
