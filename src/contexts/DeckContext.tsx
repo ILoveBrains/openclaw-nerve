@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- hook intentionally co-located with provider */
-import { createContext, useContext, useCallback, useState, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useCallback, useState, useEffect, useMemo, type ReactNode } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -215,6 +215,7 @@ export function DeckProvider({ children }: { children: ReactNode }) {
     setActiveColumn,
     addColumn,
     removeColumn,
+    toggleColumn,
     reorderColumns,
     resizeColumn,
     ensureColumn,

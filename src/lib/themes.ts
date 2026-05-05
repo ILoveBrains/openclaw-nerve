@@ -1,7 +1,5 @@
 // Theme definitions for Nerve UI
 
-import type { NerveTheme } from './theme-schema';
-
 export type ThemeName =
   | 'midnight'
   | 'light'
@@ -757,6 +755,17 @@ export function applyTheme(themeName: ThemeName, layoutOverrides?: Record<string
   if (!theme) return;
   
   const root = document.documentElement;
+
+  // Clear any previously applied imported theme or override variables
+  // so stale inline styles don't linger when switching between themes
+  for (const prop of ALL_THEME_PROPERTY_SET) {
+    root.style.removeProperty(prop);
+    if (prop.startsWith('--color-')) {
+      const baseProperty = '--' + prop.slice(8);
+      root.style.removeProperty(baseProperty);
+    }
+  }
+
   Object.entries(theme.colors).forEach(([property, value]) => {
     // Set the --color-* property
     root.style.setProperty(property, value);
@@ -794,9 +803,28 @@ export function applyTheme(themeName: ThemeName, layoutOverrides?: Record<string
   }
 }
 
-/** Apply an imported/custom theme by setting its CSS custom properties on the document root. */
+/** All CSS property names used by built-in themes (for cleanup when switching). */
+const ALL_THEME_PROPERTIES = Object.values(themes).flatMap(t => Object.keys(t.colors));
+/** Deduplicated set of all theme property names. */
+const ALL_THEME_PROPERTY_SET = new Set(ALL_THEME_PROPERTIES);
+
+/** Apply an imported/custom theme by setting its CSS custom properties on the document root.
+ *  Clears any previously applied built-in theme inline styles first, then overlays
+ *  the imported colors on top of the CSS defaults (which come from the stylesheet :root rules). */
 export function applyImportedTheme(colors: Record<string, string>): void {
   const root = document.documentElement;
+
+  // 1. Clear all previously set inline theme variables so the CSS defaults take effect
+  for (const prop of ALL_THEME_PROPERTY_SET) {
+    root.style.removeProperty(prop);
+    // Also clear the base property if it was set as a dual-namespace alias
+    if (prop.startsWith('--color-')) {
+      const baseProperty = '--' + prop.slice(8);
+      root.style.removeProperty(baseProperty);
+    }
+  }
+
+  // 2. Now apply the imported colors on top of the CSS defaults
   Object.entries(colors).forEach(([property, value]) => {
     root.style.setProperty(property, value);
     

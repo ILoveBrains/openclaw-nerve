@@ -30,7 +30,7 @@ export function EmptyChatState({
   actions = DEFAULT_ACTIONS,
   onOpenCommandPalette,
   onNewSession,
-  onSearch,
+  onSearch: _onSearch,
   onRefresh,
   onSettings,
   className,

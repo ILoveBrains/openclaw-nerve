@@ -66,10 +66,10 @@ export async function fetchTweakcnTheme(input: string): Promise<NerveTheme> {
     }
     
     case 'json': {
-      const parsed = JSON.parse(parsed.value);
+      const parsedJson = JSON.parse(parsed.value);
       themeData = {
-        name: parsed.name || 'Imported Theme',
-        colors: parsed.colors || parsed,
+        name: parsedJson.name || 'Imported Theme',
+        colors: parsedJson.colors || parsedJson,
       };
       break;
     }

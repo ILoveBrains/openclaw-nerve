@@ -109,7 +109,7 @@ export function DeckAwareChatWrapper({
  * ScopedChatPanel — A ChatPanel that reads its chat state from
  * the scoped ChatProvider (via SessionScope).
  */
-function ScopedChatPanel({ agentName, onOpenCommandPalette, onOpenSearch, onRefreshSessions, onOpenSettings, onNewSession }: {
+function ScopedChatPanel({ agentName, onOpenCommandPalette, onOpenSearch: _onOpenSearch, onRefreshSessions, onOpenSettings, onNewSession }: {
   agentName?: string;
   onOpenCommandPalette?: () => void;
   onOpenSearch?: () => void;

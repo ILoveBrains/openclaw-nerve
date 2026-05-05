@@ -221,3 +221,33 @@ export function getSpecByProperty(property: string): VariableSpec | undefined {
 export function isPlainColor(value: string): boolean {
   return /^#([0-9a-f]{3,8})$/i.test(value) || /^rgb\(/.test(value) || /^hsl\(/.test(value);
 }
+
+/** Normalize a color value for the native <input type="color"> which only accepts #rrggbb. */
+export function normalizeColorForPicker(value: string): string {
+  // Already 6-digit hex — use as-is
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value;
+  // 3-digit hex — expand to 6-digit
+  if (/^#[0-9a-f]{3}$/i.test(value)) {
+    return '#' + value[1] + value[1] + value[2] + value[2] + value[3] + value[3];
+  }
+  // 8-digit hex (with alpha) — strip alpha, use RGB
+  if (/^#[0-9a-f]{8}$/i.test(value)) {
+    return value.slice(0, 7);
+  }
+  // rgb() or hsl() — need to parse. Use a temp canvas.
+  if (/^(rgb|hsl)\(/.test(value)) {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#000000'; // reset
+        ctx.fillStyle = value;
+        const result = ctx.fillStyle; // browser normalizes to #rrggbb
+        if (result.startsWith('#')) return result;
+      }
+    } catch { /* ignore */ }
+  }
+  // Fallback: return as-is and hope for the best
+  return value;
+}

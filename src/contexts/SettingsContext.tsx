@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components -- hook intentionally co-located with provider */
 import { createContext, useContext, useCallback, useRef, useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useTTS, migrateTTSProvider, type TTSProvider } from '@/features/tts/useTTS';
-import { type ThemeName, type ExtendedThemeName, applyTheme, applyImportedTheme, applyLayoutVariables, clearLayoutVariables, themeNames } from '@/lib/themes';
+import { type ThemeName, applyTheme, applyImportedTheme, applyLayoutVariables, clearLayoutVariables, themeNames } from '@/lib/themes';
 import { type FontName, applyFont, fontNames } from '@/lib/fonts';
 import { type NerveTheme } from '@/lib/theme-schema';
-import { type LayoutTemplate, layoutTemplates } from '@/lib/layout-templates';
+import { layoutTemplates } from '@/lib/layout-templates';
 import { saveImportedTheme, loadImportedTheme, clearImportedTheme as removeImportedTheme, saveLayoutTemplate, loadLayoutTemplate } from '@/lib/theme-io';
 import { applyGatewayThemeOverrides, fetchGatewayThemeConfig } from '@/lib/gateway-theme';
 import { loadThemeOverrides, saveThemeOverrides, type ThemeOverrides } from '@/features/settings/ThemeEditorPanel';
@@ -238,6 +238,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (!themeOverrides || typeof themeOverrides !== 'object') return;
     for (const [prop, val] of Object.entries(themeOverrides)) {
       root.style.setProperty(prop, val);
+      // Also set the base property if this is a --color-* form
+      if (prop.startsWith('--color-')) {
+        const baseProp = '--' + prop.slice(8);
+        root.style.setProperty(baseProp, val);
+      }
     }
   }, [themeOverrides]);
 
@@ -458,35 +463,70 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /** Derive the base property from a --color-* name.
+   *  --color-background → --background, --color-chart-1 → --chart-1, etc.
+   *  Returns null if the property is not a --color-* form.
+   */
+  const deriveBaseProperty = useCallback((property: string): string | null => {
+    if (property.startsWith('--color-')) {
+      return '--' + property.slice(8);
+    }
+    return null;
+  }, []);
+
   const setThemeOverride = useCallback((property: string, value: string | null) => {
     setThemeOverrides(prev => {
       const next = { ...prev };
+      const root = document.documentElement;
+      const baseProp = deriveBaseProperty(property);
       if (value === null || value === '') {
         delete next[property];
-        document.documentElement.style.removeProperty(property);
+        root.style.removeProperty(property);
+        // Also remove the base form
+        if (baseProp) {
+          delete next[baseProp];
+          root.style.removeProperty(baseProp);
+        }
       } else {
         next[property] = value;
-        document.documentElement.style.setProperty(property, value);
+        root.style.setProperty(property, value);
+        // Also set the base form so both namespaces are in sync
+        if (baseProp) {
+          next[baseProp] = value;
+          root.style.setProperty(baseProp, value);
+        }
       }
       saveThemeOverrides(next);
       return next;
     });
-  }, []);
+  }, [deriveBaseProperty]);
 
   const resetThemeOverride = useCallback((property: string) => {
     setThemeOverrides(prev => {
       const next = { ...prev };
+      const root = document.documentElement;
+      const baseProp = deriveBaseProperty(property);
       delete next[property];
-      document.documentElement.style.removeProperty(property);
+      root.style.removeProperty(property);
+      // Also remove the base form
+      if (baseProp) {
+        delete next[baseProp];
+        root.style.removeProperty(baseProp);
+      }
       saveThemeOverrides(next);
       return next;
     });
-  }, []);
+  }, [deriveBaseProperty]);
 
   const resetAllThemeOverrides = useCallback(() => {
     const root = document.documentElement;
     for (const prop of Object.keys(themeOverrides)) {
       root.style.removeProperty(prop);
+      // Also remove the base property if this is a --color-* form
+      if (prop.startsWith('--color-')) {
+        const baseProp = '--' + prop.slice(8);
+        root.style.removeProperty(baseProp);
+      }
     }
     setThemeOverrides({});
     saveThemeOverrides({});
@@ -549,6 +589,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setImportedTheme,
     highContrast,
     setHighContrast,
+    themeOverrides, setThemeOverride, resetThemeOverride, resetAllThemeOverrides,
   }), [
     soundEnabled, toggleSound, ttsProvider, ttsModel, changeTtsProvider, changeTtsModel, toggleTtsProvider,
     sttProvider, changeSttProvider, sttInputMode, changeSttInputMode, sttModel, changeSttModel,

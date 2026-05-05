@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Monitor, Eye, Type, Activity, ALargeSmall, Code2, Columns3, Command, LayoutGrid, Contrast, Download, Upload, PanelLeft, ChevronDown, ChevronRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Monitor, Eye, Type, Activity, ALargeSmall, Code2, Columns3, Command, LayoutGrid, Contrast, Download, Upload, PanelLeft, Palette, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { InlineSelect } from '@/components/ui/InlineSelect';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -376,40 +377,143 @@ export function AppearanceSettings() {
         </div>
       </div>
 
-      {/* Theme Editor (collapsible) */}
-      <div className="border border-border/50 rounded-2xl overflow-hidden">
-        <button
-          onClick={() => setShowThemeEditor(v => !v)}
-          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-accent/30 transition-colors"
-        >
-          <Monitor size={14} className="text-primary" />
-          <span className="text-sm font-medium text-foreground flex-1 text-left">
-            Theme Editor
-            {themeOverrides && Object.keys(themeOverrides).length > 0 && (
-              <span className="ml-2 text-[0.6rem] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
-                {Object.keys(themeOverrides).length}
-              </span>
-            )}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Live-edit every color, font, and spacing variable
-          </span>
-          {showThemeEditor
-            ? <ChevronDown size={14} className="text-muted-foreground" />
-            : <ChevronRight size={14} className="text-muted-foreground" />
-          }
-        </button>
-        {showThemeEditor && (
-          <div className="px-4 pb-4 border-t border-border/30">
-            <ThemeEditorPanel
-              overrides={themeOverrides}
-              setOverride={(prop, val) => setThemeOverride(prop, val)}
-              resetAll={resetAllThemeOverrides}
-              resetOne={resetThemeOverride}
-            />
+      {/* Theme Editor - opens as full overlay */}
+      <button
+        onClick={() => setShowThemeEditor(true)}
+        className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl border border-border/50 bg-card/50 hover:bg-accent/30 transition-colors"
+      >
+        <Palette size={14} className="text-primary" />
+        <span className="text-sm font-medium text-foreground flex-1 text-left">
+          Open Theme Editor
+          {themeOverrides && Object.keys(themeOverrides).length > 0 && (
+            <span className="ml-2 text-[0.6rem] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
+              {Object.keys(themeOverrides).length}
+            </span>
+          )}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Full-size overlay
+        </span>
+      </button>
+
+      {/* Full-size Theme Editor Overlay */}
+      {showThemeEditor && createPortal(
+        <div className="fixed inset-0 z-[70] flex animate-fade-in">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowThemeEditor(false)}
+          />
+          
+          {/* Main editor panel - takes up left portion */}
+          <div className="relative z-10 flex h-full w-full max-w-3xl flex-col border-r border-border/70 bg-card/98 shadow-[8px_0_60px_rgba(0,0,0,0.3)] backdrop-blur-2xl animate-slide-in-left">
+            {/* Header */}
+            <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-border/70 bg-secondary/45">
+              <div className="flex items-center gap-3">
+                <Palette size={18} className="text-primary" />
+                <div>
+                  <h2 className="text-base font-semibold text-foreground">Theme Editor</h2>
+                  <p className="text-xs text-muted-foreground">Edit colors, spacing, and typography live</p>
+                </div>
+                {themeOverrides && Object.keys(themeOverrides).length > 0 && (
+                  <span className="text-[0.65rem] font-bold bg-primary/15 text-primary px-2 py-0.5 rounded-full">
+                    {Object.keys(themeOverrides).length} override{Object.keys(themeOverrides).length !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => setShowThemeEditor(false)}
+                className="shell-icon-button min-h-9 px-3"
+                title="Close (Esc)"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            {/* Editor content - full height scrollable */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <ThemeEditorPanel
+                overrides={themeOverrides}
+                setOverride={(prop, val) => setThemeOverride(prop, val)}
+                resetAll={resetAllThemeOverrides}
+                resetOne={resetThemeOverride}
+              />
+            </div>
           </div>
-        )}
-      </div>
+
+          {/* Live Preview Panel - shows on the right side */}
+          <div className="relative z-10 hidden lg:flex flex-1 flex-col bg-background/80 backdrop-blur-sm">
+            <div className="shrink-0 px-5 py-4 border-b border-border/40">
+              <h3 className="text-sm font-medium text-foreground">Live Preview</h3>
+              <p className="text-xs text-muted-foreground">Changes apply instantly</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Sample components to preview theme */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Colors</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl p-4 bg-background border border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Background</p>
+                    <p className="text-sm font-medium">Sample text</p>
+                  </div>
+                  <div className="rounded-xl p-4 bg-primary text-primary-foreground">
+                    <p className="text-xs opacity-70 mb-1">Primary</p>
+                    <p className="text-sm font-medium">Sample text</p>
+                  </div>
+                  <div className="rounded-xl p-4 bg-secondary text-secondary-foreground">
+                    <p className="text-xs opacity-70 mb-1">Secondary</p>
+                    <p className="text-sm font-medium">Sample text</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Messages</h4>
+                <div className="space-y-2">
+                  <div className="rounded-2xl px-4 py-3 bg-message-user text-message-user-foreground ml-8">
+                    <p className="text-sm">User message style</p>
+                  </div>
+                  <div className="rounded-2xl px-4 py-3 bg-message-assistant text-message-assistant-foreground mr-8">
+                    <p className="text-sm">Assistant message style</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</h4>
+                <div className="flex gap-2">
+                  <span className="px-2 py-1 rounded-full text-xs bg-green text-green-foreground">Success</span>
+                  <span className="px-2 py-1 rounded-full text-xs bg-red text-red-foreground">Error</span>
+                  <span className="px-2 py-1 rounded-full text-xs bg-orange text-orange-foreground">Warning</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Typography & Spacing</h4>
+                <div className="space-y-2 p-4 rounded-xl border border-border bg-card">
+                  <p className="text-sm font-medium">Heading style</p>
+                  <p className="text-xs text-muted-foreground">Body text with muted color</p>
+                  <div className="flex gap-2 mt-2">
+                    <div className="px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs">Button</div>
+                    <div className="px-3 py-1.5 rounded-lg border border-border text-xs">Outline</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Border & Radius</h4>
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="h-12 rounded-sm border border-border bg-card" title="Small radius" />
+                  <div className="h-12 rounded-md border border-border bg-card" title="Medium radius" />
+                  <div className="h-12 rounded-xl border border-border bg-card" title="Large radius" />
+                  <div className="h-12 rounded-full border border-border bg-card" title="Full radius" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Events Panel Visibility */}
       <div className="cockpit-row items-start justify-between">

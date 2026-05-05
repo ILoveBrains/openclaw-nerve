@@ -9,7 +9,7 @@
  * `currentSession` and `setCurrentSession` for the scoped ones, and
  * re-provides the context.
  */
-import { createContext, useContext, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { useSessionContext, type SessionContextValue } from './SessionContext';
 
 // We re-use the same context object so all downstream consumers

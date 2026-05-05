@@ -214,17 +214,26 @@ export function mapTweakcnColors(colors: Record<string, string>): Record<string,
     '--message-system': ['message-system'],
     '--scrollbar': ['border'],
     '--scrollbar-hover': ['border'],
+    // Sidebar colors — derive from tweakcn base colors
+    '--sidebar': ['sidebar', 'card'],
+    '--sidebar-foreground': ['sidebar-foreground', 'card-foreground'],
+    '--sidebar-primary': ['sidebar-primary', 'primary'],
+    '--sidebar-primary-foreground': ['sidebar-primary-foreground', 'primary-foreground'],
+    '--sidebar-accent': ['sidebar-accent', 'accent'],
+    '--sidebar-accent-foreground': ['sidebar-accent-foreground', 'accent-foreground'],
+    '--sidebar-border': ['sidebar-border', 'border'],
+    '--sidebar-ring': ['sidebar-ring', 'ring'],
   };
   
   for (const [nerveVar, fallbacks] of Object.entries(nerveExtras)) {
     if (!result[nerveVar]) {
       for (const fallback of fallbacks) {
         if (colors[fallback]) {
-          // For scrollbar, lighten/darken the border color
-          if (nerveVar === '--scrollbar' || nerveVar === '--scrollbar-hover') {
-            result[nerveVar] = colors[fallback]; // Use as-is; themes can refine
-          } else {
-            result[nerveVar] = colors[fallback];
+          result[nerveVar] = colors[fallback];
+          // Also set the --color-* dual-namespace variant
+          const colorKey = `--color-${nerveVar.slice(2)}`;
+          if (!result[colorKey]) {
+            result[colorKey] = colors[fallback];
           }
           break;
         }

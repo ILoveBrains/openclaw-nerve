@@ -11,11 +11,10 @@
  * - Badge showing how many variables have been overridden
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react';
-import { ChevronDown, RotateCcw, Copy, Download, Search, X, Palette } from 'lucide-react';
-import { VARIABLE_SPECS, GROUP_META, getSpecsByGroup, isPlainColor } from '@/lib/variable-specs';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { ChevronDown, RotateCcw, Search, X } from 'lucide-react';
+import { GROUP_META, getSpecsByGroup, isPlainColor, normalizeColorForPicker } from '@/lib/variable-specs';
 import type { VariableSpec, VariableGroup } from '@/lib/theme-schema';
-import { normalizeThemeColors } from '@/lib/theme-schema';
 
 // ────────────────────────────────────────────────────────
 // Types
@@ -83,9 +82,20 @@ function saveExpandedGroups(groups: Set<string>): void {
   } catch { /* ignore */ }
 }
 
-/** Read the current computed value of a CSS variable from :root. */
+/** Read the current computed value of a CSS variable from :root.
+ *  For custom properties, getComputedStyle returns the *specified* value which may
+ *  contain var() references. This function resolves one level of var() indirection
+ *  to get an actual color value for the color picker.
+ */
 function getComputedValue(property: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(property).trim();
+  let value = getComputedStyle(document.documentElement).getPropertyValue(property).trim();
+  // Resolve single-level var(--x) references
+  const varMatch = value.match(/^var\((--[^)]+)\)$/);
+  if (varMatch) {
+    const resolved = getComputedStyle(document.documentElement).getPropertyValue(varMatch[1]).trim();
+    if (resolved) value = resolved;
+  }
+  return value;
 }
 
 // ────────────────────────────────────────────────────────
@@ -100,26 +110,64 @@ function ColorSwatch({ value, onChange, onReset, isOverridden }: {
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const canPick = isPlainColor(value);
+  const pickerValue = normalizeColorForPicker(value);
+  const [hexInput, setHexInput] = useState(value);
+  const [justApplied, setJustApplied] = useState(false);
+
+  // Sync hex input when external value changes
+  useEffect(() => {
+    setHexInput(value);
+  }, [value]);
+
+  const handleColorPick = useCallback((newVal: string) => {
+    setHexInput(newVal);
+    onChange(newVal);
+    setJustApplied(true);
+    setTimeout(() => setJustApplied(false), 1200);
+  }, [onChange]);
+
+  const handleHexSubmit = useCallback(() => {
+    const normalized = hexInput.startsWith('#') ? hexInput : `#${hexInput}`;
+    // Basic hex validation
+    if (/^#[0-9a-fA-F]{3,8}$/.test(normalized)) {
+      onChange(normalized);
+      setJustApplied(true);
+      setTimeout(() => setJustApplied(false), 1200);
+    } else {
+      setHexInput(value); // revert on invalid
+    }
+  }, [hexInput, onChange, value]);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       {canPick ? (
         <>
           <button
             onClick={() => inputRef.current?.click()}
-            className="relative w-8 h-8 rounded-lg border border-border/80 shadow-sm overflow-hidden cursor-pointer shrink-0 transition-shadow hover:shadow-md"
+            className="relative w-7 h-7 rounded-md border border-border/80 shadow-sm overflow-hidden cursor-pointer shrink-0 transition-shadow hover:shadow-md"
             title="Pick color"
             style={{ backgroundColor: value }}
           >
             <input
               ref={inputRef}
               type="color"
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
+              value={pickerValue}
+              onChange={(e) => handleColorPick(e.target.value)}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
           </button>
-          <span className="text-xs font-mono text-muted-foreground min-w-0 truncate flex-1">{value}</span>
+          <input
+            type="text"
+            value={hexInput}
+            onChange={(e) => setHexInput(e.target.value)}
+            onBlur={handleHexSubmit}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleHexSubmit(); }}
+            className="flex-1 min-w-0 h-6 rounded border border-border/40 bg-transparent px-1.5 text-[0.65rem] font-mono text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring/40"
+            title="Edit hex color"
+          />
+          {justApplied && (
+            <span className="text-[0.55rem] font-bold text-green shrink-0" title="Applied">✓</span>
+          )}
         </>
       ) : (
         <span className="text-xs font-mono text-muted-foreground/60 truncate flex-1" title={value}>
@@ -186,7 +234,7 @@ function VariableRow({ spec, value, isOverridden, onSet, onReset }: {
           <span className="text-[0.6rem] text-muted-foreground/60 truncate">{spec.description}</span>
         )}
       </div>
-      <div className="w-[180px] shrink-0">
+      <div className="w-[220px] shrink-0">
         {spec.type === 'color' ? (
           <ColorSwatch value={value} onChange={onSet} onReset={onReset} isOverridden={isOverridden} />
         ) : (
@@ -255,6 +303,15 @@ export function ThemeEditorPanel({ overrides, setOverride, resetAll, resetOne }:
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
 
+  // While the theme editor is active, disable background blur so the user can
+  // see their color changes clearly against the actual UI.
+  useEffect(() => {
+    document.documentElement.classList.add('nerve-theme-editor-active');
+    return () => {
+      document.documentElement.classList.remove('nerve-theme-editor-active');
+    };
+  }, []);
+
   const specsByGroup = useMemo(() => getSpecsByGroup(), []);
   const overrideCount = overrides ? Object.keys(overrides).length : 0;
 
@@ -314,19 +371,15 @@ export function ThemeEditorPanel({ overrides, setOverride, resetAll, resetOne }:
   }, [overrides, overrideCount]);
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
+    <div className="space-y-2 px-3 py-2">
+      {/* Action bar */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Palette size={14} className="text-primary" />
-          <span className="text-sm font-medium text-foreground">Theme Editor</span>
-          {overrideCount > 0 && (
-            <span className="text-[0.6rem] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
-              {overrideCount} override{overrideCount !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5">
+        {overrideCount > 0 && (
+          <span className="text-[0.6rem] font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded-full">
+            {overrideCount} override{overrideCount !== 1 ? 's' : ''}
+          </span>
+        )}
+        <div className="flex items-center gap-1.5 ml-auto">
           <button
             onClick={handleExportCSS}
             disabled={overrideCount === 0}
@@ -376,7 +429,7 @@ export function ThemeEditorPanel({ overrides, setOverride, resetAll, resetOne }:
       </div>
 
       {/* Groups */}
-      <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar">
         {Object.entries(filteredGroups).map(([group, specs]) => (
           <GroupSection
             key={group}
