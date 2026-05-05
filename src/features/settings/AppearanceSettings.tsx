@@ -306,10 +306,10 @@ export function AppearanceSettings() {
           <Download size={14} className="text-primary" />
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground">Import theme</span>
-            <span className="text-xs text-muted-foreground">Paste a tweakcn URL or JSON to import a custom palette.</span>
+            <span className="text-xs text-muted-foreground">Paste a tweakcn URL, theme ID, or raw JSON.</span>
           </div>
         </div>
-        <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[200px]">
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[280px]">
           {importedTheme && (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
               <span className="inline-block w-2 h-2 rounded-full bg-primary" />
@@ -321,7 +321,7 @@ export function AppearanceSettings() {
               type="text"
               value={importInput}
               onChange={(e) => { setImportInput(e.target.value); setImportStatus('idle'); setImportError(''); }}
-              placeholder="tweakcn.com/..."
+              placeholder="https://tweakcn.com/r/themes/..."
               className="flex-1 min-h-11 rounded-2xl border border-border/80 bg-background/65 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"
               onKeyDown={(e) => { if (e.key === 'Enter') handleImportTheme(); }}
             />
@@ -342,7 +342,17 @@ export function AppearanceSettings() {
             </button>
           )}
           {importStatus === 'error' && importError && (
-            <span className="text-xs text-destructive">{importError}</span>
+            <div className="space-y-2">
+              <span className="text-xs text-destructive block">{importError}</span>
+              {importError.includes('CORS') || importError.includes('Network error') ? (
+                <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-2 space-y-1">
+                  <p className="font-medium text-foreground">Alternative: Paste JSON directly</p>
+                  <p>1. Visit the theme URL in your browser</p>
+                  <p>2. Copy the JSON response</p>
+                  <p>3. Paste it here instead</p>
+                </div>
+              ) : null}
+            </div>
           )}
           {importStatus === 'success' && (
             <span className="text-xs text-green">Theme imported successfully</span>

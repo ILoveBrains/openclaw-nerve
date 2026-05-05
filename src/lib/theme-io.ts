@@ -42,10 +42,30 @@ const STORAGE_KEY_LAYOUT = 'nerve:theme:layout';
  * - Full URL: https://tweakcn.com/r/themes/amethyst-haze
  * - Editor URL: https://tweakcn.com/editor/theme?theme=amethyst-haze
  * - Theme ID: amethyst-haze
+ * - Raw JSON from the registry API
  * - Registry path: /themes/amethyst-haze
  */
 export async function fetchTweakcnTheme(input: string): Promise<NerveTheme> {
-  const parsed = parseTweakcnInput(input);
+  const trimmed = input.trim();
+  
+  // Try parsing as raw JSON first (in case user pasted the API response)
+  if (trimmed.startsWith('{')) {
+    try {
+      const parsedJson = JSON.parse(trimmed);
+      // Check if it's a tweakcn registry response
+      if (parsedJson.cssVars || parsedJson.colors) {
+        return processTweakcnData({
+          name: parsedJson.name || 'Imported Theme',
+          label: parsedJson.label || parsedJson.name,
+          colors: parsedJson.cssVars?.dark || parsedJson.cssVars?.light || parsedJson.colors || {},
+        });
+      }
+    } catch {
+      // Not valid JSON, continue with other formats
+    }
+  }
+  
+  const parsed = parseTweakcnInput(trimmed);
   
   let themeData: TweakcnTheme;
   
@@ -69,15 +89,23 @@ export async function fetchTweakcnTheme(input: string): Promise<NerveTheme> {
       const parsedJson = JSON.parse(parsed.value);
       themeData = {
         name: parsedJson.name || 'Imported Theme',
-        colors: parsedJson.colors || parsedJson,
+        label: parsedJson.label || parsedJson.name,
+        colors: parsedJson.colors || parsedJson.cssVars?.dark || parsedJson.cssVars?.light || {},
       };
       break;
     }
     
     default:
-      throw new Error(`Unsupported theme input format`);
+      throw new Error(`Unsupported theme input format. Supported: tweakcn URL, theme ID, or raw JSON.`);
   }
   
+  return processTweakcnData(themeData);
+}
+
+/**
+ * Process tweakcn theme data into a NerveTheme.
+ */
+function processTweakcnData(themeData: TweakcnTheme): NerveTheme {
   // Map tweakcn colors to Nerve variables
   const nerveColors = mapTweakcnColors(themeData.colors);
   const normalizedColors = normalizeThemeColors(nerveColors);
@@ -127,25 +155,47 @@ function extractTweakcnThemeId(url: string): string | null {
 
 /**
  * Fetch theme data from the tweakcn registry API.
+ * 
+ * The API returns a registry-item JSON with cssVars.theme, cssVars.light, and cssVars.dark.
+ * We extract colors from the dark theme (since Nerve is predominantly dark-themed).
  */
 async function fetchTweakcnRegistry(themeId: string): Promise<TweakcnTheme> {
   const url = `https://tweakcn.com/r/themes/${themeId}`;
   
-  const response = await fetch(url, {
-    headers: { 'Accept': 'application/json' },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Failed to fetch theme "${themeId}": ${response.status} ${response.statusText}`);
+  try {
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // The tweakcn registry returns { name, cssVars: { theme, light, dark } }
+    // Extract colors from dark mode (Nerve is predominantly dark)
+    const colors = data.cssVars?.dark || data.cssVars?.light || data.colors || data.cssVariables || {};
+    
+    if (Object.keys(colors).length === 0) {
+      throw new Error(`No color data found in theme "${themeId}"`);
+    }
+    
+    return {
+      name: data.name || themeId,
+      label: data.label || data.name || themeId,
+      colors: colors,
+    };
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(
+        `Network error fetching theme "${themeId}". ` +
+        `This may be due to CORS restrictions or network connectivity. ` +
+        `Try pasting the theme JSON directly instead.`
+      );
+    }
+    throw error;
   }
-  
-  const data = await response.json();
-  
-  return {
-    name: data.name || themeId,
-    label: data.label || data.name || themeId,
-    colors: data.colors || data.cssVariables || {},
-  };
 }
 
 // ────────────────────────────────────────────────────────
