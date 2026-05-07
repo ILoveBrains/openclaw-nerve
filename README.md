@@ -6,37 +6,67 @@
 
 **The cockpit OpenClaw deserves.**
 
-*OpenClaw is powerful. Nerve is the interface that makes people say “oh, now I get it."*
+*OpenClaw is powerful. Nerve is the interface that makes people say "oh, now I get it."*
 
+> ⚠️ **This fork is for active development of the Theme Overhaul and Deck Mode features.**
+> For the stable upstream, see [daggerhashimoto/openclaw-nerve](https://github.com/daggerhashimoto/openclaw-nerve).
 
-[![Star Nerve on GitHub](https://img.shields.io/github/stars/daggerhashimoto/openclaw-nerve?style=for-the-badge&logo=github&label=Star%20Nerve%20on%20GitHub&color=0f172a)](https://github.com/daggerhashimoto/openclaw-nerve)
+[![Star Nerve on GitHub](https://img.shields.io/github/stars/ILoveBrains/openclaw-nerve?style=for-the-badge&logo=github&label=Star%20Fork%20on%20GitHub&color=0f172a)](https://github.com/ILoveBrains/openclaw-nerve)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
-[![Discord](https://img.shields.io/discord/1474924531683688478?style=for-the-badge&color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/Sh9ZGtctva)
 
 </div>
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/daggerhashimoto/openclaw-nerve/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ILoveBrains/openclaw-nerve/theme-overhaul/install.sh | bash
 ```
 > *Run the installer, live in 60 seconds*
 
+---
 
-<div align="center">
+## What's in this fork
 
-<https://github.com/user-attachments/assets/25d65a85-1d42-45bc-baae-5e6fca531705>
+This branch (`theme-overhaul`) contains significant UI and UX enhancements built on top of upstream Nerve. The two main feature areas are:
 
-</div>
+### 🎨 Theme Overhaul
 
-<table align="center">
-<p align="center">
-<strong>Mobile Screenshots</strong>
-  </p>
-<tr>
-<td align="center"><img src="https://y7qrgowhkj.ufs.sh/f/WxqUPjL9oRPTRBre6go2FRlk6Tbtc5WnrMZ9AUKdBC3vsNi0" alt="Nerve screenshot 1" width="200" /></td>
-<td align="center"><img src="https://y7qrgowhkj.ufs.sh/f/WxqUPjL9oRPTW4tYWWL9oRPTJEIWbY7sVfKzjyrSCXqMdGv6" alt="Nerve screenshot 2" width="200" /></td>
-<td align="center"><img src="https://y7qrgowhkj.ufs.sh/f/WxqUPjL9oRPTSe31HqKJOvEcMqm9djw1Y5srz3GQTIUlFg84" alt="Nerve screenshot 3" width="200" /></td>
-</tr>
-</table>
+A rebuilt, full-featured theme system with a visual editor and third-party theme import.
+
+| Feature | Description |
+|---|---|
+| **Full-size Theme Editor** | Replaces the cramped bottom dock with a slide-in overlay panel, live preview of colors, typography, and components |
+| **Tweakcn Import** | Paste a theme ID or raw JSON from [tweakcn.com](https://tweakcn.com) to import shadcn/ui themes directly |
+| **CSS Variable Normalization** | All themes use `--color-*` prefixed variables for consistency with shadcn/ui and Control UI |
+| **14 Built-in Themes** | Including new additions like `midnight`, `solarized`, `dracula`, `catppuccin`, `nord`, `rose-pine` |
+| **7 Layout Templates** | Dense, spacious, comfortable, compact, relaxed, minimal, and roomy spacing presets |
+| **Import / Export** | Save themes as JSON and share them across installs |
+
+📖 [Theme System Documentation](docs/THEMES.md)
+
+### 🗂️ Deck Mode
+
+Multi-column chat layout for simultaneous, independent sessions side-by-side.
+
+| Feature | Description |
+|---|---|
+| **Up to 6 Columns** | Chat with multiple agents or sessions at the same time |
+| **Independent Context** | Each column has its own `ChatProvider`, session, messages, and input — no shared state |
+| **Persistent Layout** | Deck configuration saves to `localStorage` and restores on reload |
+| **Resizable Columns** | Drag gutters to adjust column widths; equalize with one click |
+| **Sidebar Integration** | Click an agent in the sidebar to toggle it in/out of the deck |
+| **Session Scoping** | `SessionScope` wraps each column so `currentSession` is isolated per column |
+
+📖 [Deck Mode Documentation](docs/DECK_MODE.md)
+
+### 📚 New & Updated Documentation
+
+| Document | What's inside |
+|---|---|
+| [`docs/THEMES.md`](docs/THEMES.md) | Full theme system reference: CSS vars, schema, built-in themes, layout templates, visual editor, import/export |
+| [`docs/DECK_MODE.md`](docs/DECK_MODE.md) | Deck mode architecture, column lifecycle, resize behavior, data flow, and sidebar wiring |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Updated with DeckContext, ThemeEditorPanel, theme system libraries, and deck mode components |
+| [`IMPLEMENTATION.md`](IMPLEMENTATION.md) | Corrected file paths, added missing source files, updated deck layer and layout template descriptions |
+
+---
 
 ## Why Nerve exists
 
@@ -47,71 +77,34 @@ The moment you care about visibility, control and coordination over your agents,
 
 *Nerve is that place.*
 
-## Why it feels different
+### Why it feels different
 
-### ✨ Fleet control, not just chat
-Run multiple agents from one place. Each agent can have its own workspace, subagents, memory, identity, soul, and skills, while Nerve gives you a single control plane to switch context, inspect state, and operate the whole fleet.
+- **Fleet control, not just chat** — Run multiple agents from one place. Each agent can have its own workspace, subagents, memory, identity, soul, and skills, while Nerve gives you a single control plane to switch context, inspect state, and operate the whole fleet.
+- **Voice that feels built in** — Push-to-talk, wake word flows, explicit language selection, local Whisper transcription, multilingual stop and cancel phrases, and multiple TTS providers.
+- **Full agent operating context** — Inspect, edit, and manage agent context live, without guessing what an agent knows, where it works, or how it is configured.
+- **A real operating layer** — Crons, session trees, kanban workflows, review loops, proposal inboxes, and model overrides.
+- **Rich live output** — Charts, diffs, previews, syntax-highlighted code, structured tool rendering, and streaming UI.
 
-### ✨ Voice that feels built in
-Push-to-talk, wake word flows, explicit language selection, local Whisper transcription, multilingual stop and cancel phrases, and multiple TTS providers. Voice is part of the product, not an afterthought.
+---
 
-### ✨ Full agent operating context
-Each agent can have its own workspace, memory, identity, soul, and skills. Nerve lets you inspect, edit, and manage that context live, without guessing what an agent knows, where it works, or how it is configured.
-
-### ✨ A real operating layer
-Crons, session trees, kanban workflows, review loops, proposal inboxes, and model overrides. Nerve gives agent work an operating surface instead of leaving it trapped inside chat history.
-
-### ✨ Rich live output
-Charts, diffs, previews, syntax-highlighted code, structured tool rendering, and streaming UI that makes agent responses easier to inspect.
-
-><details>
->
-> <summary>What you can do with it</summary>
-> 
-> - **Talk to your agent by voice** and hear it answer back naturally
-> - **Browse and edit the workspace live** while the conversation is still happening
-> - **Watch cron runs as separate sessions** instead of treating automation like a black box
-> - **Delegate work onto a kanban board** and review what came back
-> - **Ask for a chart** and get a real chart, not a code block pretending to be one
-> - **Track token usage, costs, and context pressure** while long tasks run
-> - **Inspect subagent activity** without losing the main thread
-> - **Switch between per-agent workspaces and memory** without losing context
-> - **Inspect each agent’s identity, soul, and skills** from the UI
-> - **Delegate subagent work inside a larger agent fleet** instead of treating everything as one thread
-
-</details>
-
-## Capability snapshot
-
-| Area | Highlights |
-|---|---|
-| **Agent fleet** | Run multiple agents from one control plane, each with its own workspace, subagents, memory, identity, soul, and skills |
-| **Interaction** | Streaming chat, markdown, syntax highlighting, diff views, image paste, file previews, voice input, TTS, live transcription preview |
-| **Workspace** | Per-agent file browser, tabbed editor, memory editing, config editing, skills browser |
-| **Operations** | Session tree, subagents, cron scheduling, kanban task board, review flow, proposal inbox, model overrides |
-| **Observability** | Token usage, cost tracking, context meter, agent logs, event logs |
-| **Polish** | Command palette, responsive UI, 14 themes, font family and 10px to 24px font size controls, mobile-safe input sizing, hot-reloadable settings, updater with rollback |
 ## Get started
 
 ### One command
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/daggerhashimoto/openclaw-nerve/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ILoveBrains/openclaw-nerve/theme-overhaul/install.sh | bash
 ```
-
-> *The installer handles dependencies, clone, build, and then usually hands off straight into the setup wizard. Guided access modes include localhost, LAN, Tailscale tailnet IP, and Tailscale Serve.*
-
 
 ### Pick your setup
 
-- **[Local](docs/DEPLOYMENT-A.md)** — Run Nerve and Gateway on one machine. *Recommended default setup for reliability and simplicity.*
+- **[Local](docs/DEPLOYMENT-A.md)** — Run Nerve and Gateway on one machine. *Recommended default.*
 - **[Hybrid](docs/DEPLOYMENT-B.md)** — Keep Nerve local, run Gateway in the cloud
 - **[Cloud](docs/DEPLOYMENT-C.md)** — Run Nerve and Gateway in the cloud
 
-<details><summary><strong>Manual install</strong></summary>
+<details><summary><strong>Manual install (this fork)</strong></summary>
 
 ```bash
-git clone https://github.com/daggerhashimoto/openclaw-nerve.git
+git clone -b theme-overhaul https://github.com/ILoveBrains/openclaw-nerve.git
 cd openclaw-nerve
 npm install
 npm run setup
@@ -120,10 +113,7 @@ npm run prod
 
 </details>
 
-
-
 <details><summary><strong>Updating</strong></summary>
-
 
 ```bash
 npm run update -- --yes
@@ -136,19 +126,17 @@ Fetches the latest release, rebuilds, restarts, verifies health, and rolls back 
 <details><summary><strong>Development</strong></summary>
 
 ```bash
-npm run dev # frontend — Vite on :3080 by default
-PORT=3081 npm run dev:server # backend — explicit split-port dev setup
+npm run dev          # frontend — Vite on :3080 by default
+PORT=3081 npm run dev:server  # backend — explicit split-port dev setup
 ```
 
-`npm run dev:server` uses the normal server `PORT` setting. If you do not override it, the backend also defaults to `:3080` and will collide with Vite.
-
 **Requires:** Node.js 22+ and an OpenClaw gateway.
+
 </details>
 
+---
 
 ## How it fits into OpenClaw
-
-Nerve sits in front of the gateway and gives you a richer operating surface in the browser.
 
 ```text
 Browser ─── Nerve (:3080) ─── OpenClaw Gateway (:18789)
@@ -158,39 +146,31 @@ Browser ─── Nerve (:3080) ─── OpenClaw Gateway (:18789)
  └─ REST ────┘ files, memories, TTS, models
 ```
 
-OpenClaw remains the engine. Nerve gives it a cockpit.
-
-**Frontend:** React 19 · Tailwind CSS 4 · shadcn/ui · Vite 7 
+**Frontend:** React 19 · Tailwind CSS 4 · shadcn/ui · Vite 7  
 **Backend:** Hono 4 on Node.js
+
+---
 
 ## Security
 
-Nerve binds to `127.0.0.1` by default, so it stays local unless you choose to expose it.
+Nerve binds to `127.0.0.1` by default. When exposed (`HOST=0.0.0.0`), built-in password authentication protects the UI and its endpoints. See **[docs/SECURITY.md](docs/SECURITY.md)** for the full threat model.
 
-When you bind it to the network (`HOST=0.0.0.0`), built-in password authentication protects the UI and its endpoints. Sessions use signed cookies, passwords are stored as hashes, WebSocket upgrades are authenticated, and trusted connections can use server-side gateway token injection.
-
-For the full threat model and hardening details, see **[docs/SECURITY.md](docs/SECURITY.md)**.
+---
 
 ## Documentation
 
 - **[Architecture](docs/ARCHITECTURE.md)** — codebase structure and system design
 - **[Configuration](docs/CONFIGURATION.md)** — `.env` variables and setup behavior
 - **[Deployment Guides](docs/README.md)** — local, hybrid, and cloud setups
+- **[Theme System](docs/THEMES.md)** — 🆕 comprehensive theme system documentation
+- **[Deck Mode](docs/DECK_MODE.md)** — 🆕 multi-column chat layout documentation
 - **[Agent Markers](docs/AGENT-MARKERS.md)** — TTS, charts, kanban markers, and rich UI output
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** — common issues and fixes
-- **[Tailscale Guide](docs/TAILSCALE.md)** — private remote access via tailnet IP or Tailscale Serve
+- **[Tailscale Guide](docs/TAILSCALE.md)** — private remote access via tailnet
 - **[Contributing](CONTRIBUTING.md)** — development workflow and pull requests
 - **[Changelog](CHANGELOG.md)** — release notes and shipped changes
 
-## Community
-
-If this is the kind of interface you want around your OpenClaw setup, give the repo a star, contribute and keep an eye on it.
-
-Join the **[Nerve Discord](https://discord.gg/Sh9ZGtctva)** to get help, discuss, share your setup, and follow development.
-
-### People building Nerve
-
-[![Contributors](https://contrib.rocks/image?repo=daggerhashimoto/openclaw-nerve)](https://github.com/daggerhashimoto/openclaw-nerve/graphs/contributors)
+---
 
 ## License
 
